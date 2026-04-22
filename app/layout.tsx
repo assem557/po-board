@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Plus } from 'lucide-react'
 import UserSwitcher from '@/components/UserSwitcher'
 import NotificationBell from '@/components/NotificationBell'
+import ThemeToggle from '@/components/ThemeToggle'
 
 export const metadata: Metadata = {
   title: 'PO Board',
@@ -17,6 +18,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+        <script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem('po-board-theme');document.documentElement.setAttribute('data-theme',t||'light')}catch(e){}` }} />
       </head>
       <body>
         {/* Top bar — dark navy command bar */}
@@ -44,6 +46,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 style={{ color: 'rgba(255,255,255,0.5)' }}>
                 Dealers
               </Link>
+              <ThemeToggle />
               <NotificationBell />
               <UserSwitcher />
               <Link

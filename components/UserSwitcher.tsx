@@ -1,5 +1,6 @@
 'use client'
 import { useUserStore } from '@/lib/store'
+import { ROLE_ACCENT } from '@/lib/constants'
 import type { UserRole } from '@/lib/types'
 
 const DEMO_USERS: { name: string; role: UserRole }[] = [
@@ -11,24 +12,14 @@ const DEMO_USERS: { name: string; role: UserRole }[] = [
   { name: 'Mohamed Faisal', role: 'tech' },
 ]
 
-const ROLE_STYLES: Record<UserRole, string> = {
-  partnership: '#7c3aed',
-  finance: '#2563eb',
-  pricing: '#ca8a04',
-  ops: '#059669',
-  tech: '#dc2626',
-  admin: '#475569',
-}
-
 export default function UserSwitcher() {
   const { name, role, setUser } = useUserStore()
+  const accent = ROLE_ACCENT[role] ?? '#475569'
 
   return (
     <div className="flex items-center gap-2">
-      <div
-        className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-        style={{ background: ROLE_STYLES[role] }}
-      >
+      <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+        style={{ background: accent }}>
         {name.charAt(0)}
       </div>
       <select
@@ -46,10 +37,8 @@ export default function UserSwitcher() {
           </option>
         ))}
       </select>
-      <span
-        className="text-xs px-2 py-0.5 rounded-full font-medium"
-        style={{ background: ROLE_STYLES[role] + '33', color: ROLE_STYLES[role], border: `1px solid ${ROLE_STYLES[role]}66` }}
-      >
+      <span className="text-xs px-2 py-0.5 rounded-full font-medium"
+        style={{ background: accent + '33', color: accent, border: `1px solid ${accent}66` }}>
         {role}
       </span>
     </div>

@@ -16,9 +16,9 @@ export default function DashboardStats({ all }: Props) {
   for (const po of active) {
     stageCounts[po.current_stage] = (stageCounts[po.current_stage] ?? 0) + 1
   }
-  const bottleneckStage = Object.entries(stageCounts).sort((a, b) => Number(b[1]) - Number(a[1]))[0]
-  const bottleneckLabel = bottleneckStage
-    ? STAGES.find(s => s.number === Number(bottleneckStage[0]))?.title ?? `S${bottleneckStage[0]}`
+  const bottleneckEntry = Object.entries(stageCounts).sort((a, b) => Number(b[1]) - Number(a[1]))[0]
+  const bottleneckStage = bottleneckEntry
+    ? STAGES.find(s => s.number === Number(bottleneckEntry[0]))
     : null
 
   let avgDays: number | null = null
@@ -28,42 +28,17 @@ export default function DashboardStats({ all }: Props) {
   }
 
   const stats = [
-    {
-      label: 'Active POs',
-      value: active.length,
-      icon: TrendingUp,
-      color: '#2563eb',
-    },
-    {
-      label: 'Vehicles in flight',
-      value: vehiclesInFlight,
-      icon: Car,
-      color: '#7c3aed',
-    },
-    {
-      label: 'Completed',
-      value: complete.length,
-      icon: CheckCircle2,
-      color: '#059669',
-    },
-    {
-      label: 'Cancelled',
-      value: cancelled.length,
-      icon: AlertTriangle,
-      color: '#dc2626',
-    },
-    ...(avgDays !== null ? [{
-      label: 'Avg. completion',
-      value: `${avgDays}d`,
-      icon: Clock,
-      color: '#ca8a04',
-    }] : []),
-    ...(bottleneckLabel ? [{
-      label: 'Most stuck stage',
-      value: bottleneckLabel,
+    { label: 'Active POs', value: String(active.length), icon: TrendingUp, color: '#2563eb' },
+    { label: 'Vehicles in flight', value: String(vehiclesInFlight), icon: Car, color: '#7c3aed' },
+    { label: 'Completed', value: String(complete.length), icon: CheckCircle2, color: '#059669' },
+    { label: 'Cancelled', value: String(cancelled.length), icon: AlertTriangle, color: '#dc2626' },
+    ...(avgDays !== null ? [{ label: 'Avg. completion', value: `${avgDays}d`, icon: Clock, color: '#ca8a04' }] : []),
+    ...(bottleneckStage ? [{
+      label: 'Most congested',
+      value: `S${bottleneckStage.number}`,
+      sub: bottleneckStage.teamLabel,
       icon: AlertTriangle,
       color: '#ea580c',
-      small: true,
     }] : []),
   ]
 
@@ -72,21 +47,18 @@ export default function DashboardStats({ all }: Props) {
       {stats.map(stat => {
         const Icon = stat.icon
         return (
-          <div
-            key={stat.label}
-            className="flex items-center gap-3 px-4 py-3 rounded-xl"
-            style={{ background: 'var(--card)', border: '1px solid var(--border)', minWidth: 140 }}
-          >
+          <div key={stat.label} className="flex items-center gap-3 px-4 py-3 rounded-xl flex-shrink-0"
+            style={{ background: 'var(--card)', border: '1px solid var(--border)', minWidth: 130 }}>
             <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
               style={{ background: stat.color + '18' }}>
               <Icon className="w-4 h-4" style={{ color: stat.color }} />
             </div>
-            <div>
-              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{stat.label}</p>
-              <p className={`font-bold leading-tight ${stat.small ? 'text-sm' : 'text-lg'}`}
-                style={{ color: 'var(--text-primary)' }}>
-                {stat.value}
-              </p>
+            <div className="min-w-0">
+              <p className="text-xs truncate" style={{ color: 'var(--text-muted)' }}>{stat.label}</p>
+              <p className="font-bold text-lg leading-tight" style={{ color: 'var(--text-primary)' }}>{stat.value}</p>
+              {'sub' in stat && stat.sub && (
+                <p className="text-xs truncate" style={{ color: 'var(--text-muted)', fontSize: 10 }}>{stat.sub}</p>
+              )}
             </div>
           </div>
         )

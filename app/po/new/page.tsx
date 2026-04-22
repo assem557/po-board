@@ -3,11 +3,9 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus, Trash2, ArrowLeft, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
+import { CITIES, COLORS } from '@/lib/constants'
 
 interface Batch { color: string; count: number; city: string }
-
-const CITIES = ['Riyadh', 'Jeddah', 'Dammam', 'Mecca', 'Medina', 'Khobar', 'Tabuk']
-const COLORS = ['White', 'Black', 'Silver', 'Grey', 'Red', 'Blue', 'Pearl', 'Champagne']
 
 const inputStyle = (error?: string) => ({
   border: `1px solid ${error ? '#dc2626' : 'var(--border)'}`,

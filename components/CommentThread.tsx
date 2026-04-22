@@ -1,18 +1,10 @@
 'use client'
 import { useState } from 'react'
-import { Send } from 'lucide-react'
+import { Send, AlertCircle } from 'lucide-react'
 import type { POComment } from '@/lib/types'
 import { useUserStore } from '@/lib/store'
 import { formatDate } from '@/lib/utils'
-
-const ROLE_ACCENT: Record<string, string> = {
-  partnership: '#7c3aed',
-  finance: '#2563eb',
-  pricing: '#ca8a04',
-  ops: '#059669',
-  tech: '#dc2626',
-  admin: '#475569',
-}
+import { ROLE_ACCENT } from '@/lib/constants'
 
 interface Props {
   poId: string
@@ -24,18 +16,30 @@ export default function CommentThread({ poId, comments, onComment }: Props) {
   const { name, role } = useUserStore()
   const [body, setBody] = useState('')
   const [sending, setSending] = useState(false)
+  const [error, setError] = useState('')
 
   async function handleSend() {
     if (!body.trim()) return
     setSending(true)
+    setError('')
     try {
       const res = await fetch(`/api/purchase-orders/${poId}/comments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ author_name: name, author_role: role, body: body.trim() }),
       })
-      if (res.ok) { onComment(await res.json()); setBody('') }
-    } finally { setSending(false) }
+      if (res.ok) {
+        onComment(await res.json())
+        setBody('')
+      } else {
+        const d = await res.json()
+        setError(d.error ?? 'Failed to send message. Try again.')
+      }
+    } catch {
+      setError('Network error. Check your connection and try again.')
+    } finally {
+      setSending(false)
+    }
   }
 
   return (
@@ -52,10 +56,8 @@ export default function CommentThread({ poId, comments, onComment }: Props) {
           const accent = ROLE_ACCENT[c.author_role] ?? '#475569'
           return (
             <div key={c.id} className="flex gap-3">
-              <div
-                className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold"
-                style={{ background: accent }}
-              >
+              <div className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold"
+                style={{ background: accent }}>
                 {c.author_name.charAt(0)}
               </div>
               <div className="flex-1 min-w-0">
@@ -75,9 +77,16 @@ export default function CommentThread({ poId, comments, onComment }: Props) {
         })}
       </div>
 
-      {/* Input */}
+      {error && (
+        <div className="flex items-center gap-2 text-xs px-3 py-2 rounded-lg mb-3"
+          style={{ background: 'var(--red-light)', border: '1px solid #fecaca', color: 'var(--red)' }}>
+          <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+          {error}
+        </div>
+      )}
+
       <div className="flex gap-2 items-end">
-        <div className="flex-1 relative">
+        <div className="flex-1">
           <textarea
             value={body}
             onChange={e => setBody(e.target.value)}
@@ -85,11 +94,7 @@ export default function CommentThread({ poId, comments, onComment }: Props) {
             placeholder="Add a note… ⌘↵ to send"
             rows={2}
             className="w-full text-sm rounded-lg px-3 py-2.5 resize-none focus:outline-none transition-all"
-            style={{
-              border: '1px solid var(--border)',
-              background: 'var(--surface)',
-              color: 'var(--text-primary)',
-            }}
+            style={{ border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-primary)' }}
           />
         </div>
         <button

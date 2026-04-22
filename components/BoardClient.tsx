@@ -4,16 +4,8 @@ import { Search, Filter, X } from 'lucide-react'
 import type { PurchaseOrder } from '@/lib/types'
 import { STAGES } from '@/lib/stages'
 import { daysSince } from '@/lib/utils'
+import { ROLE_ACCENT } from '@/lib/constants'
 import POCard from './POCard'
-
-const STAGE_TEAM_ACCENT: Record<string, string> = {
-  partnership: '#7c3aed',
-  finance: '#2563eb',
-  pricing: '#ca8a04',
-  ops: '#059669',
-  tech: '#dc2626',
-  admin: '#475569',
-}
 
 type FilterStatus = 'all' | 'active' | 'complete' | 'cancelled' | 'idle'
 
@@ -42,11 +34,15 @@ export default function BoardClient({ all }: Props) {
 
   const grouped: Record<number, PurchaseOrder[]> = {}
   for (const s of STAGES) grouped[s.number] = []
+  // Only active POs in stage columns — cancelled ones stay separate
   for (const po of filtered) {
-    if (!grouped[po.current_stage]) grouped[po.current_stage] = []
-    grouped[po.current_stage].push(po)
+    if (po.status === 'active') {
+      if (!grouped[po.current_stage]) grouped[po.current_stage] = []
+      grouped[po.current_stage].push(po)
+    }
   }
   const complete = filtered.filter(p => p.status === 'complete')
+  const cancelled = filtered.filter(p => p.status === 'cancelled')
 
   const filterOptions: { label: string; value: FilterStatus }[] = [
     { label: 'All', value: 'all' },
@@ -106,7 +102,7 @@ export default function BoardClient({ all }: Props) {
         <div className="flex gap-3" style={{ minWidth: 'max-content' }}>
           {STAGES.slice(0, 7).map(stage => {
             const cards = grouped[stage.number] ?? []
-            const accent = STAGE_TEAM_ACCENT[stage.team]
+            const accent = ROLE_ACCENT[stage.team]
             return (
               <div key={stage.number} className="w-60 flex-shrink-0 flex flex-col gap-3">
                 <div className="rounded-lg px-3 py-2.5" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
@@ -139,6 +135,7 @@ export default function BoardClient({ all }: Props) {
             )
           })}
 
+          {/* Complete column */}
           <div className="w-60 flex-shrink-0 flex flex-col gap-3">
             <div className="rounded-lg px-3 py-2.5" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
               <div className="flex items-center justify-between">
@@ -167,6 +164,29 @@ export default function BoardClient({ all }: Props) {
               )}
             </div>
           </div>
+
+          {/* Cancelled column — only shown when there are cancelled POs */}
+          {cancelled.length > 0 && (
+            <div className="w-60 flex-shrink-0 flex flex-col gap-3">
+              <div className="rounded-lg px-3 py-2.5" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#94a3b8' }} />
+                    <span className="text-xs font-semibold" style={{ color: 'var(--text-secondary)' }}>—</span>
+                  </div>
+                  <span className="text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center"
+                    style={{ background: 'var(--border)', color: 'var(--text-muted)' }}>
+                    {cancelled.length}
+                  </span>
+                </div>
+                <p className="text-xs font-semibold mt-1 leading-tight" style={{ color: 'var(--text-primary)' }}>Cancelled</p>
+                <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>All Teams</p>
+              </div>
+              <div className="space-y-2.5">
+                {cancelled.map(po => <POCard key={po.id} po={po} />)}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </>

@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   ArrowLeft, Calendar, Package, Clock, FileText,
-  Pencil, X, RotateCcw, Ban, RefreshCw, Download, Check,
+  Pencil, X, RotateCcw, Ban, RefreshCw, Download, Check, AlertCircle,
 } from 'lucide-react'
 import type { PurchaseOrder } from '@/lib/types'
 import POStageProgress from '@/components/POStageProgress'
@@ -13,16 +13,7 @@ import CommentThread from '@/components/CommentThread'
 import VehicleTable from '@/components/VehicleTable'
 import { formatDate, daysSince, totalVehicles } from '@/lib/utils'
 import { useUserStore } from '@/lib/store'
-
-const ROLE_ACCENT: Record<string, string> = {
-  partnership: '#7c3aed',
-  finance: '#2563eb',
-  pricing: '#ca8a04',
-  ops: '#059669',
-  tech: '#dc2626',
-  admin: '#475569',
-}
-const CITIES = ['Riyadh', 'Jeddah', 'Dammam', 'Mecca', 'Medina', 'Khobar', 'Tabuk']
+import { ROLE_ACCENT } from '@/lib/constants'
 
 export default function PODetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -30,6 +21,7 @@ export default function PODetailPage({ params }: { params: Promise<{ id: string 
   const { name: userName, role: userRole } = useUserStore()
   const [po, setPO] = useState<PurchaseOrder | null>(null)
   const [loading, setLoading] = useState(true)
+  const [actionError, setActionError] = useState('')
 
   // Edit state
   const [editing, setEditing] = useState(false)
@@ -62,55 +54,51 @@ export default function PODetailPage({ params }: { params: Promise<{ id: string 
     setEditDeliveryDate(po.delivery_date ?? '')
     setEditNotes(po.notes ?? '')
     setEditing(true)
+    setActionError('')
   }
 
   async function handleSaveEdit() {
     setSaving(true)
-    await fetch(`/api/purchase-orders/${id}`, {
+    setActionError('')
+    const res = await fetch(`/api/purchase-orders/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        dealer_name: editDealerName,
-        delivery_date: editDeliveryDate || null,
-        notes: editNotes || null,
-      }),
+      body: JSON.stringify({ dealer_name: editDealerName, delivery_date: editDeliveryDate || null, notes: editNotes || null }),
     })
     setSaving(false)
+    if (!res.ok) { setActionError('Failed to save changes. Please try again.'); return }
     setEditing(false)
     await fetchPO()
   }
 
   async function handleCancel() {
     setCancelling(true)
-    await fetch(`/api/purchase-orders/${id}/cancel`, {
+    setActionError('')
+    const res = await fetch(`/api/purchase-orders/${id}/cancel`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ reason: cancelReason, author_name: userName, author_role: userRole }),
     })
     setCancelling(false)
+    if (!res.ok) { setActionError('Failed to cancel PO. Please try again.'); return }
     setShowCancel(false)
     await fetchPO()
   }
 
   async function handleReopen() {
-    await fetch(`/api/purchase-orders/${id}/reopen`, { method: 'POST' })
+    setActionError('')
+    const res = await fetch(`/api/purchase-orders/${id}/reopen`, { method: 'POST' })
+    if (!res.ok) { setActionError('Failed to reopen PO. Please try again.'); return }
     await fetchPO()
   }
 
   async function handleRollback() {
     setRollingBack(true)
-    await fetch(`/api/purchase-orders/${id}/rollback`, { method: 'POST' })
+    setActionError('')
+    const res = await fetch(`/api/purchase-orders/${id}/rollback`, { method: 'POST' })
     setRollingBack(false)
+    if (!res.ok) { setActionError('Failed to roll back stage. Please try again.'); return }
     setShowRollback(false)
-    await fetchPO()
-  }
-
-  async function handleVehicleUpdate(batchId: string, vin: string, plate: string) {
-    await fetch(`/api/purchase-orders/${id}/vehicles/${batchId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ vin, plate }),
-    })
     await fetchPO()
   }
 
@@ -141,9 +129,7 @@ export default function PODetailPage({ params }: { params: Promise<{ id: string 
     const blob = new Blob([csv], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
-    a.href = url
-    a.download = `${po.po_number}.csv`
-    a.click()
+    a.href = url; a.download = `${po.po_number}.csv`; a.click()
     URL.revokeObjectURL(url)
   }
 
@@ -160,8 +146,19 @@ export default function PODetailPage({ params }: { params: Promise<{ id: string 
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center" style={{ minHeight: 200 }}>
-        <div className="text-sm" style={{ color: 'var(--text-muted)' }}>Loading…</div>
+      <div style={{ maxWidth: 960, margin: '0 auto' }}>
+        <div className="h-5 w-16 rounded animate-pulse mb-6" style={{ background: 'var(--border)' }} />
+        <div className="rounded-2xl animate-pulse mb-5" style={{ background: 'var(--border)', height: 160 }} />
+        <div className="grid gap-5" style={{ gridTemplateColumns: '1fr 320px' }}>
+          <div className="space-y-5">
+            <div className="rounded-xl animate-pulse" style={{ background: 'var(--border)', height: 220 }} />
+            <div className="rounded-xl animate-pulse" style={{ background: 'var(--border)', height: 140 }} />
+          </div>
+          <div className="space-y-5">
+            <div className="rounded-xl animate-pulse" style={{ background: 'var(--border)', height: 200 }} />
+            <div className="rounded-xl animate-pulse" style={{ background: 'var(--border)', height: 160 }} />
+          </div>
+        </div>
       </div>
     )
   }
@@ -172,7 +169,12 @@ export default function PODetailPage({ params }: { params: Promise<{ id: string 
   const isComplete = po.status === 'complete'
   const isCancelled = po.status === 'cancelled'
   const statusColor = isComplete ? '#059669' : isCancelled ? '#dc2626' : '#2563eb'
-  const isAdmin = userRole === 'admin'
+
+  const editModeForTable = po.current_stage === 6 && !isCancelled
+    ? 'vin-plate'
+    : po.current_stage === 1 && !isCancelled
+    ? 'batches'
+    : undefined
 
   return (
     <div style={{ maxWidth: 960, margin: '0 auto' }}>
@@ -180,6 +182,18 @@ export default function PODetailPage({ params }: { params: Promise<{ id: string 
         style={{ color: 'var(--text-secondary)' }}>
         <ArrowLeft className="w-3.5 h-3.5" /> Board
       </Link>
+
+      {/* Global action error */}
+      {actionError && (
+        <div className="flex items-center gap-2 text-sm px-4 py-3 rounded-xl mb-4"
+          style={{ background: 'var(--red-light)', border: '1px solid #fecaca', color: 'var(--red)' }}>
+          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+          {actionError}
+          <button onClick={() => setActionError('')} className="ml-auto" style={{ color: 'var(--red)' }}>
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* Header card */}
       <div className="rounded-2xl overflow-hidden mb-5"
@@ -225,12 +239,10 @@ export default function PODetailPage({ params }: { params: Promise<{ id: string 
                   <h1 className="text-2xl font-bold text-white mt-0.5">{po.dealer_name}</h1>
                   {po.notes && <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.5)' }}>{po.notes}</p>}
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold px-2.5 py-1 rounded-full mt-1"
-                    style={{ background: statusColor + '22', color: statusColor, border: `1px solid ${statusColor}44` }}>
-                    {po.status}
-                  </span>
-                </div>
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-full mt-1 flex-shrink-0"
+                  style={{ background: statusColor + '22', color: statusColor, border: `1px solid ${statusColor}44` }}>
+                  {po.status}
+                </span>
               </div>
 
               <div className="flex flex-wrap gap-5 mt-4 text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>
@@ -241,17 +253,16 @@ export default function PODetailPage({ params }: { params: Promise<{ id: string 
                 <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" /> {daysSince(po.created_at)}d ago</span>
               </div>
 
-              {/* Action buttons */}
-              <div className="flex items-center gap-2 mt-4">
+              <div className="flex items-center gap-2 mt-4 flex-wrap">
                 <button onClick={openEdit}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium"
                   style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.7)' }}>
                   <Pencil className="w-3 h-3" /> Edit
                 </button>
 
                 {!isCancelled && !isComplete && po.current_stage > 1 && (
                   <button onClick={() => setShowRollback(true)}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all"
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium"
                     style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.7)' }}>
                     <RotateCcw className="w-3 h-3" /> Roll back stage
                   </button>
@@ -259,7 +270,7 @@ export default function PODetailPage({ params }: { params: Promise<{ id: string 
 
                 {!isCancelled && !isComplete && (
                   <button onClick={() => setShowCancel(true)}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all"
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium"
                     style={{ background: 'rgba(220,38,38,0.2)', color: '#fca5a5' }}>
                     <Ban className="w-3 h-3" /> Cancel PO
                   </button>
@@ -280,10 +291,11 @@ export default function PODetailPage({ params }: { params: Promise<{ id: string 
                 </button>
               </div>
 
-              {/* Roll back confirm */}
               {showRollback && (
                 <div className="mt-3 p-3 rounded-lg" style={{ background: 'rgba(220,38,38,0.15)', border: '1px solid rgba(220,38,38,0.3)' }}>
-                  <p className="text-sm text-white mb-2">Roll back from Stage {po.current_stage} → Stage {po.current_stage - 1}? The last completion record will be removed.</p>
+                  <p className="text-sm text-white mb-2">
+                    Roll back Stage {po.current_stage} → Stage {po.current_stage - 1}? The last completion record will be removed.
+                  </p>
                   <div className="flex gap-2">
                     <button onClick={handleRollback} disabled={rollingBack}
                       className="px-3 py-1.5 rounded-lg text-xs font-medium"
@@ -299,7 +311,6 @@ export default function PODetailPage({ params }: { params: Promise<{ id: string 
                 </div>
               )}
 
-              {/* Cancel confirm */}
               {showCancel && (
                 <div className="mt-3 p-3 rounded-lg" style={{ background: 'rgba(220,38,38,0.15)', border: '1px solid rgba(220,38,38,0.3)' }}>
                   <p className="text-sm text-white mb-2">Cancel this PO? Add a reason (optional):</p>
@@ -342,7 +353,7 @@ export default function PODetailPage({ params }: { params: Promise<{ id: string 
             />
           )}
           {isCancelled && (
-            <div className="rounded-xl p-6 text-center" style={{ background: '#fef2f2', border: '1px solid #fecaca' }}>
+            <div className="rounded-xl p-6 text-center" style={{ background: 'var(--red-light)', border: '1px solid #fecaca' }}>
               <Ban className="w-8 h-8 mx-auto mb-2" style={{ color: '#dc2626' }} />
               <p className="font-semibold" style={{ color: '#991b1b' }}>This PO has been cancelled.</p>
               <p className="text-sm mt-1" style={{ color: '#b91c1c' }}>Use &quot;Reopen PO&quot; to resume it.</p>
@@ -352,9 +363,15 @@ export default function PODetailPage({ params }: { params: Promise<{ id: string 
           <div className="rounded-xl p-5" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
             <VehicleTable
               batches={po.vehicle_batches ?? []}
-              editable={po.current_stage === 6 && !isCancelled}
-              onUpdate={handleVehicleUpdate}
+              poId={po.id}
+              editMode={editModeForTable}
+              onRefresh={fetchPO}
             />
+            {editModeForTable === 'batches' && (
+              <p className="text-xs mt-3" style={{ color: 'var(--text-muted)' }}>
+                Stage 1 — you can add or remove vehicle rows before Finance issues the PO.
+              </p>
+            )}
           </div>
         </div>
 

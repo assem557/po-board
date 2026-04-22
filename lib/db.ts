@@ -139,6 +139,29 @@ export async function updateVehicleBatch(id: string, vin: string, plate: string)
   await sb.from('vehicle_batches').update({ vin, plate }).eq('id', id)
 }
 
+export async function updateVehicleBatchDetails(
+  id: string,
+  data: { color?: string; count?: number; city?: string }
+): Promise<void> {
+  const sb = getClient()
+  await sb.from('vehicle_batches').update(data).eq('id', id)
+}
+
+export async function addVehicleBatch(
+  po_id: string,
+  batch: { color: string; count: number; city: string }
+): Promise<VehicleBatch> {
+  const sb = getClient()
+  const { data, error } = await sb.from('vehicle_batches').insert({ po_id, ...batch }).select().single()
+  if (error || !data) throw error ?? new Error('Failed to add batch')
+  return data
+}
+
+export async function deleteVehicleBatch(id: string): Promise<void> {
+  const sb = getClient()
+  await sb.from('vehicle_batches').delete().eq('id', id)
+}
+
 export async function updatePO(
   id: string,
   input: { dealer_name?: string; delivery_date?: string | null; notes?: string | null }
