@@ -139,6 +139,65 @@ export async function updateVehicleBatch(id: string, vin: string, plate: string)
   await sb.from('vehicle_batches').update({ vin, plate }).eq('id', id)
 }
 
+export async function updatePO(
+  id: string,
+  input: { dealer_name?: string; delivery_date?: string | null; notes?: string | null }
+): Promise<void> {
+  const sb = getClient()
+  await sb.from('purchase_orders').update(input).eq('id', id)
+}
+
+export async function cancelPO(id: string): Promise<void> {
+  const sb = getClient()
+  await sb.from('purchase_orders').update({ status: 'cancelled' }).eq('id', id)
+}
+
+export async function reopenPO(id: string): Promise<void> {
+  const sb = getClient()
+  await sb.from('purchase_orders').update({ status: 'active' }).eq('id', id)
+}
+
+export async function rollbackStage(po_id: string): Promise<void> {
+  const sb = getClient()
+  const { data: po } = await sb
+    .from('purchase_orders')
+    .select('current_stage')
+    .eq('id', po_id)
+    .single()
+
+  if (!po || po.current_stage <= 1) return
+
+  const { data: completions } = await sb
+    .from('po_stage_completions')
+    .select('id')
+    .eq('po_id', po_id)
+    .order('completed_at', { ascending: false })
+    .limit(1)
+
+  if (completions && completions.length > 0) {
+    await sb.from('po_stage_completions').delete().eq('id', completions[0].id)
+  }
+
+  await sb
+    .from('purchase_orders')
+    .update({ current_stage: po.current_stage - 1, status: 'active' })
+    .eq('id', po_id)
+}
+
+export async function createDealer(input: {
+  name: string; type?: string; city?: string; has_working_hours: boolean; has_branches: boolean
+}): Promise<Dealer> {
+  const sb = getClient()
+  const { data, error } = await sb.from('dealers').insert(input).select().single()
+  if (error || !data) throw error ?? new Error('Failed to create dealer')
+  return data
+}
+
+export async function updateDealer(id: string, input: Partial<Omit<Dealer, 'id'>>): Promise<void> {
+  const sb = getClient()
+  await sb.from('dealers').update(input).eq('id', id)
+}
+
 export async function addComment(
   po_id: string,
   data: { author_name: string; author_role: string; body: string }

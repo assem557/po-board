@@ -39,6 +39,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </Link>
 
             <div className="flex items-center gap-4">
+              <Link href="/dealers"
+                className="text-sm font-medium transition-opacity hover:opacity-70"
+                style={{ color: 'rgba(255,255,255,0.5)' }}>
+                Dealers
+              </Link>
               <NotificationBell />
               <UserSwitcher />
               <Link
