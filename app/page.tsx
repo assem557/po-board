@@ -46,7 +46,7 @@ export default async function HomePage() {
         <Link
           href="/po/new"
           className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-semibold transition-all hover:brightness-110 active:scale-95"
-          style={{ background: 'var(--accent)', color: '#1a0a00' }}
+          style={{ background: 'var(--blue)', color: 'white' }}
         >
           <Plus className="w-3.5 h-3.5" />
           New PO

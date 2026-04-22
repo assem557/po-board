@@ -35,7 +35,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div className="max-w-screen-xl mx-auto px-6 h-13 flex items-center justify-between gap-6" style={{ height: 52 }}>
             {/* Wordmark */}
             <Link href="/" className="flex items-center gap-2.5 group">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'var(--accent)' }}>
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: 'var(--blue)' }}>
                 {/* Convoy logo: 3 chevrons = convoy moving through stages */}
                 <svg width="18" height="14" viewBox="0 0 18 14" fill="none">
                   <path d="M1 7L4.5 2V12L1 7Z" fill="white" fillOpacity="0.35"/>
@@ -74,7 +74,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link
                 href="/po/new"
                 className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-semibold transition-all hover:brightness-110 active:scale-95"
-                style={{ background: 'var(--accent)', color: '#1a0a00', letterSpacing: '-0.01em' }}
+                style={{ background: 'var(--blue)', color: 'white', letterSpacing: '-0.01em' }}
               >
                 <Plus className="w-3.5 h-3.5" />
                 New PO
