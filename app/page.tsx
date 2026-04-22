@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Plus, Activity, AlertTriangle } from 'lucide-react'
+import { Plus, AlertTriangle } from 'lucide-react'
 import BoardClient from '@/components/BoardClient'
 import DashboardStats from '@/components/DashboardStats'
 import IdleChecker from '@/components/IdleChecker'
@@ -29,14 +29,8 @@ export default async function HomePage() {
       {/* Page header */}
       <div className="flex items-end justify-between mb-5">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <Activity className="w-4 h-4" style={{ color: 'var(--blue)' }} />
-            <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>
-              Operations
-            </span>
-          </div>
-          <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
-            Vehicle Onboarding
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            Live Board
           </h1>
           <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
             {active.length} active · {complete.length} complete
@@ -49,23 +43,14 @@ export default async function HomePage() {
             )}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Link
-            href="/dealers"
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all"
-            style={{ background: 'var(--card)', color: 'var(--text-secondary)', border: '1px solid var(--border)' }}
-          >
-            Dealers
-          </Link>
-          <Link
-            href="/po/new"
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all hover:opacity-90"
-            style={{ background: 'var(--navy)', color: 'white' }}
-          >
-            <Plus className="w-4 h-4" />
-            New PO
-          </Link>
-        </div>
+        <Link
+          href="/po/new"
+          className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-semibold transition-all hover:brightness-110 active:scale-95"
+          style={{ background: 'var(--accent)', color: '#1a0a00' }}
+        >
+          <Plus className="w-3.5 h-3.5" />
+          New PO
+        </Link>
       </div>
 
       <DashboardStats all={all} />

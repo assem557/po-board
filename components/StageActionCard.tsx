@@ -5,6 +5,7 @@ import { getStage } from '@/lib/stages'
 import { useUserStore } from '@/lib/store'
 import { useNotifStore, STAGE_NEXT_TEAM, STAGE_NEXT_LABEL } from '@/lib/notifications'
 import { ROLE_ACCENT } from '@/lib/constants'
+import { useToastStore } from '@/lib/toast-store'
 
 interface Props {
   poId: string
@@ -35,6 +36,7 @@ export default function StageActionCard({ poId, currentStage, isExistingDealer, 
   }
 
   const { add: addNotif } = useNotifStore()
+  const { add: addToast } = useToastStore()
   const accent = ROLE_ACCENT[stage.team] ?? '#475569'
   const isMyStage = role === stage.team || role === 'admin'
   const checkboxes = stage.requiresCheckboxes ?? []
@@ -81,6 +83,9 @@ export default function StageActionCard({ poId, currentStage, isExistingDealer, 
             forTeam: nextTeam,
           })
         }
+        addToast('success', nextLabel
+          ? `Stage ${stage.number} done — ${nextLabel}`
+          : `Stage ${stage.number} complete!`)
         onAdvanced()
       }
     } catch {

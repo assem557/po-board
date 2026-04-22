@@ -18,36 +18,56 @@ export default function POStageProgress({ currentStage }: Props) {
 
           return (
             <div key={stage.number} className="flex items-start flex-1 min-w-0">
-              {/* Step */}
-              <div className="flex flex-col items-center flex-shrink-0" style={{ width: 64 }}>
+              {/* Step node */}
+              <div className="flex flex-col items-center flex-shrink-0" style={{ width: 70 }}>
                 <div
-                  className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all border-2"
+                  className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold transition-all border-2"
                   style={{
                     background: done ? accent : active ? 'var(--card)' : 'var(--surface)',
                     borderColor: done || active ? accent : 'var(--border)',
                     color: done ? 'white' : active ? accent : 'var(--text-muted)',
-                    boxShadow: active ? `0 0 0 3px ${accent}22` : 'none',
+                    boxShadow: active ? `0 0 0 4px ${accent}20, 0 2px 8px ${accent}30` : done ? `0 2px 8px ${accent}40` : 'none',
+                    fontSize: done ? undefined : 13,
                   }}
                 >
-                  {done ? <Check className="w-3.5 h-3.5" /> : stage.number}
+                  {done ? <Check className="w-4 h-4" /> : stage.number}
                 </div>
-                <div className="text-center mt-1.5 px-0.5 w-full">
-                  <p className="leading-tight truncate"
+                <div className="text-center mt-2 px-0.5 w-full">
+                  <p className="leading-tight"
                     style={{
                       color: active ? accent : done ? 'var(--text-secondary)' : 'var(--text-muted)',
                       fontSize: 10,
-                      fontWeight: active ? 600 : 400,
+                      fontWeight: active ? 700 : done ? 500 : 400,
+                      maxWidth: 64,
+                      margin: '0 auto',
+                      wordBreak: 'break-word',
+                      lineHeight: 1.3,
                     }}>
                     {stage.title}
                   </p>
+                  {active && (
+                    <p className="text-xs mt-0.5" style={{ color: accent, fontSize: 9, fontWeight: 600, opacity: 0.8 }}>
+                      NOW
+                    </p>
+                  )}
                 </div>
               </div>
 
-              {/* Connector — flex-1 so it expands to fill space */}
+              {/* Connector */}
               {i < 6 && (
-                <div className="flex-1 h-0.5 mt-3.5 min-w-2"
-                  style={{ background: currentStage > stage.number ? accent : 'var(--border)' }}
-                />
+                <div className="flex-1 mt-4 min-w-2" style={{ height: 2, position: 'relative' }}>
+                  {/* Background track */}
+                  <div style={{ position: 'absolute', inset: 0, background: 'var(--border)', borderRadius: 2 }} />
+                  {/* Fill — only if done */}
+                  {currentStage > stage.number && (
+                    <div style={{
+                      position: 'absolute',
+                      inset: 0,
+                      background: accent,
+                      borderRadius: 2,
+                    }} />
+                  )}
+                </div>
               )}
             </div>
           )

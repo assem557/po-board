@@ -67,11 +67,14 @@ export default function NewPOPage() {
       <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--card)', border: '1px solid var(--border)', boxShadow: '0 4px 24px rgba(0,0,0,0.07)' }}>
         {/* Form header */}
         <div className="px-7 py-6" style={{ borderBottom: '1px solid var(--border)', background: 'var(--navy)' }}>
-          <p className="text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          <div style={{ height: 2, background: 'linear-gradient(90deg, var(--accent), #fbbf24)', margin: '-24px -28px 20px', borderRadius: 0 }} />
+          <p className="text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,0.35)', letterSpacing: '0.12em' }}>
             New Purchase Order
           </p>
-          <h1 className="text-xl font-bold text-white">Vehicle Onboarding Request</h1>
-          <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
+          <h1 className="text-xl font-bold text-white" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+            Vehicle Onboarding Request
+          </h1>
+          <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.45)' }}>
             Creates a PO at Stage 1 — assigned to Partnership.
           </p>
         </div>
@@ -192,8 +195,8 @@ export default function NewPOPage() {
               Cancel
             </Link>
             <button type="submit" disabled={submitting}
-              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all"
-              style={{ background: submitting ? 'var(--border)' : 'var(--navy)', color: submitting ? 'var(--text-muted)' : 'white' }}>
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition-all hover:brightness-110 active:scale-95"
+              style={{ background: submitting ? 'var(--border)' : 'var(--accent)', color: submitting ? 'var(--text-muted)' : '#1a0a00' }}>
               {submitting ? 'Creating…' : (<>Create PO <ArrowRight className="w-4 h-4" /></>)}
             </button>
           </div>

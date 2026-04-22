@@ -5,6 +5,7 @@ import Link from 'next/link'
 import {
   ArrowLeft, Calendar, Package, Clock, FileText,
   Pencil, X, RotateCcw, Ban, RefreshCw, Download, Check, AlertCircle,
+  MessageSquare,
 } from 'lucide-react'
 import type { PurchaseOrder } from '@/lib/types'
 import POStageProgress from '@/components/POStageProgress'
@@ -22,6 +23,7 @@ export default function PODetailPage({ params }: { params: Promise<{ id: string 
   const [po, setPO] = useState<PurchaseOrder | null>(null)
   const [loading, setLoading] = useState(true)
   const [actionError, setActionError] = useState('')
+  const [sideTab, setSideTab] = useState<'activity' | 'thread'>('activity')
 
   // Edit state
   const [editing, setEditing] = useState(false)
@@ -134,9 +136,9 @@ export default function PODetailPage({ params }: { params: Promise<{ id: string 
   }
 
   const inputStyle = {
-    border: '1px solid var(--border)',
-    background: 'var(--surface)',
-    color: 'var(--text-primary)',
+    border: '1px solid rgba(255,255,255,0.15)',
+    background: 'rgba(255,255,255,0.08)',
+    color: 'white',
     borderRadius: 8,
     padding: '7px 11px',
     fontSize: 14,
@@ -146,17 +148,16 @@ export default function PODetailPage({ params }: { params: Promise<{ id: string 
 
   if (loading) {
     return (
-      <div style={{ maxWidth: 960, margin: '0 auto' }}>
-        <div className="h-5 w-16 rounded animate-pulse mb-6" style={{ background: 'var(--border)' }} />
-        <div className="rounded-2xl animate-pulse mb-5" style={{ background: 'var(--border)', height: 160 }} />
+      <div style={{ maxWidth: 980, margin: '0 auto' }}>
+        <div className="h-4 w-14 rounded animate-pulse mb-6" style={{ background: 'var(--border)' }} />
+        <div className="rounded-2xl animate-pulse mb-5" style={{ background: 'var(--border)', height: 170 }} />
         <div className="grid gap-5" style={{ gridTemplateColumns: '1fr 320px' }}>
           <div className="space-y-5">
             <div className="rounded-xl animate-pulse" style={{ background: 'var(--border)', height: 220 }} />
             <div className="rounded-xl animate-pulse" style={{ background: 'var(--border)', height: 140 }} />
           </div>
-          <div className="space-y-5">
-            <div className="rounded-xl animate-pulse" style={{ background: 'var(--border)', height: 200 }} />
-            <div className="rounded-xl animate-pulse" style={{ background: 'var(--border)', height: 160 }} />
+          <div>
+            <div className="rounded-xl animate-pulse" style={{ background: 'var(--border)', height: 320 }} />
           </div>
         </div>
       </div>
@@ -168,7 +169,7 @@ export default function PODetailPage({ params }: { params: Promise<{ id: string 
   const isExistingDealer = !!po.dealer_id
   const isComplete = po.status === 'complete'
   const isCancelled = po.status === 'cancelled'
-  const statusColor = isComplete ? '#059669' : isCancelled ? '#dc2626' : '#2563eb'
+  const statusColor = isComplete ? '#059669' : isCancelled ? '#94a3b8' : 'var(--accent)'
 
   const editModeForTable = po.current_stage === 6 && !isCancelled
     ? 'vin-plate'
@@ -177,13 +178,12 @@ export default function PODetailPage({ params }: { params: Promise<{ id: string 
     : undefined
 
   return (
-    <div style={{ maxWidth: 960, margin: '0 auto' }}>
+    <div style={{ maxWidth: 980, margin: '0 auto' }} className="animate-fade-in">
       <Link href="/" className="inline-flex items-center gap-1.5 text-sm mb-6 transition-opacity hover:opacity-60"
         style={{ color: 'var(--text-secondary)' }}>
         <ArrowLeft className="w-3.5 h-3.5" /> Board
       </Link>
 
-      {/* Global action error */}
       {actionError && (
         <div className="flex items-center gap-2 text-sm px-4 py-3 rounded-xl mb-4"
           style={{ background: 'var(--red-light)', border: '1px solid #fecaca', color: 'var(--red)' }}>
@@ -197,26 +197,27 @@ export default function PODetailPage({ params }: { params: Promise<{ id: string 
 
       {/* Header card */}
       <div className="rounded-2xl overflow-hidden mb-5"
-        style={{ background: 'var(--card)', border: '1px solid var(--border)', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+        style={{ background: 'var(--card)', border: '1px solid var(--border)', boxShadow: '0 2px 16px rgba(0,0,0,0.07)' }}>
+
+        {/* Top accent stripe */}
+        <div style={{ height: 3, background: isComplete ? '#059669' : isCancelled ? '#94a3b8' : 'linear-gradient(90deg, var(--accent), #fbbf24)' }} />
+
         <div className="px-7 py-5" style={{ background: 'var(--navy)' }}>
           {editing ? (
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Dealer Name</label>
-                  <input value={editDealerName} onChange={e => setEditDealerName(e.target.value)}
-                    style={{ ...inputStyle, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: 'white' }} />
+                  <input value={editDealerName} onChange={e => setEditDealerName(e.target.value)} style={inputStyle} />
                 </div>
                 <div>
                   <label className="block text-xs mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Delivery Date</label>
-                  <input type="date" value={editDeliveryDate} onChange={e => setEditDeliveryDate(e.target.value)}
-                    style={{ ...inputStyle, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: 'white' }} />
+                  <input type="date" value={editDeliveryDate} onChange={e => setEditDeliveryDate(e.target.value)} style={inputStyle} />
                 </div>
               </div>
               <div>
                 <label className="block text-xs mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Notes</label>
-                <input value={editNotes} onChange={e => setEditNotes(e.target.value)}
-                  style={{ ...inputStyle, background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', color: 'white' }} />
+                <input value={editNotes} onChange={e => setEditNotes(e.target.value)} style={inputStyle} />
               </div>
               <div className="flex gap-2 pt-1">
                 <button onClick={handleSaveEdit} disabled={saving}
@@ -235,17 +236,23 @@ export default function PODetailPage({ params }: { params: Promise<{ id: string 
             <>
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <span className="mono text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>{po.po_number}</span>
-                  <h1 className="text-2xl font-bold text-white mt-0.5">{po.dealer_name}</h1>
-                  {po.notes && <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.5)' }}>{po.notes}</p>}
+                  <span className="mono text-xs" style={{ color: 'rgba(255,255,255,0.3)', fontSize: 11 }}>{po.po_number}</span>
+                  <h1 className="text-2xl font-bold text-white mt-0.5" style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                    {po.dealer_name}
+                  </h1>
+                  {po.notes && <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.45)' }}>{po.notes}</p>}
                 </div>
                 <span className="text-xs font-semibold px-2.5 py-1 rounded-full mt-1 flex-shrink-0"
-                  style={{ background: statusColor + '22', color: statusColor, border: `1px solid ${statusColor}44` }}>
+                  style={{
+                    background: isComplete ? 'rgba(5,150,105,0.2)' : isCancelled ? 'rgba(148,163,184,0.15)' : 'rgba(245,158,11,0.2)',
+                    color: isComplete ? '#6ee7b7' : isCancelled ? '#94a3b8' : '#fbbf24',
+                    border: `1px solid ${isComplete ? 'rgba(5,150,105,0.3)' : isCancelled ? 'rgba(148,163,184,0.2)' : 'rgba(245,158,11,0.3)'}`,
+                  }}>
                   {po.status}
                 </span>
               </div>
 
-              <div className="flex flex-wrap gap-5 mt-4 text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>
+              <div className="flex flex-wrap gap-5 mt-4 text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
                 <span className="flex items-center gap-1.5"><Package className="w-3.5 h-3.5" /> {vehicles} vehicles</span>
                 {po.delivery_date && (
                   <span className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5" /> {formatDate(po.delivery_date)}</span>
@@ -255,16 +262,16 @@ export default function PODetailPage({ params }: { params: Promise<{ id: string 
 
               <div className="flex items-center gap-2 mt-4 flex-wrap">
                 <button onClick={openEdit}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all hover:opacity-80"
                   style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.7)' }}>
                   <Pencil className="w-3 h-3" /> Edit
                 </button>
 
                 {!isCancelled && !isComplete && po.current_stage > 1 && (
                   <button onClick={() => setShowRollback(true)}
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium"
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all hover:opacity-80"
                     style={{ background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.7)' }}>
-                    <RotateCcw className="w-3 h-3" /> Roll back stage
+                    <RotateCcw className="w-3 h-3" /> Roll back
                   </button>
                 )}
 
@@ -286,13 +293,13 @@ export default function PODetailPage({ params }: { params: Promise<{ id: string 
 
                 <button onClick={handleExportCSV}
                   className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium ml-auto"
-                  style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.5)' }}>
-                  <Download className="w-3 h-3" /> Export CSV
+                  style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.4)' }}>
+                  <Download className="w-3 h-3" /> CSV
                 </button>
               </div>
 
               {showRollback && (
-                <div className="mt-3 p-3 rounded-lg" style={{ background: 'rgba(220,38,38,0.15)', border: '1px solid rgba(220,38,38,0.3)' }}>
+                <div className="mt-3 p-3 rounded-xl" style={{ background: 'rgba(220,38,38,0.15)', border: '1px solid rgba(220,38,38,0.3)' }}>
                   <p className="text-sm text-white mb-2">
                     Roll back Stage {po.current_stage} → Stage {po.current_stage - 1}? The last completion record will be removed.
                   </p>
@@ -312,7 +319,7 @@ export default function PODetailPage({ params }: { params: Promise<{ id: string 
               )}
 
               {showCancel && (
-                <div className="mt-3 p-3 rounded-lg" style={{ background: 'rgba(220,38,38,0.15)', border: '1px solid rgba(220,38,38,0.3)' }}>
+                <div className="mt-3 p-3 rounded-xl" style={{ background: 'rgba(220,38,38,0.15)', border: '1px solid rgba(220,38,38,0.3)' }}>
                   <p className="text-sm text-white mb-2">Cancel this PO? Add a reason (optional):</p>
                   <input value={cancelReason} onChange={e => setCancelReason(e.target.value)}
                     placeholder="Reason for cancellation…"
@@ -336,13 +343,15 @@ export default function PODetailPage({ params }: { params: Promise<{ id: string 
           )}
         </div>
 
+        {/* Stage progress */}
         <div className="px-7 py-5">
           <POStageProgress currentStage={po.current_stage} />
         </div>
       </div>
 
-      {/* Body */}
-      <div className="grid gap-5" style={{ gridTemplateColumns: '1fr 320px' }}>
+      {/* Body: 2-col layout */}
+      <div className="grid gap-5" style={{ gridTemplateColumns: '1fr 340px' }}>
+        {/* Left: stage action + vehicle table */}
         <div className="space-y-5">
           {!isCancelled && (
             <StageActionCard
@@ -375,56 +384,88 @@ export default function PODetailPage({ params }: { params: Promise<{ id: string 
           </div>
         </div>
 
-        <div className="space-y-5">
-          {/* Activity log */}
-          <div className="rounded-xl p-5" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
-            <h3 className="text-xs font-semibold uppercase tracking-widest mb-4 flex items-center gap-2"
-              style={{ color: 'var(--text-muted)' }}>
-              <FileText className="w-3.5 h-3.5" /> Activity
-            </h3>
-            {(po.stage_completions ?? []).length === 0
-              ? <p className="text-sm" style={{ color: 'var(--text-muted)' }}>No activity yet.</p>
-              : (
-                <div className="space-y-4">
-                  {[...(po.stage_completions ?? [])].reverse().map(sc => {
-                    const accent = ROLE_ACCENT[sc.completed_by_role] ?? '#475569'
-                    return (
-                      <div key={sc.id} className="flex gap-3">
-                        <div className="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold"
-                          style={{ background: accent }}>
-                          {sc.completed_by_name.charAt(0)}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs">
-                            <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>
-                              {sc.completed_by_name.split(' ')[0]}
-                            </span>
-                            <span style={{ color: 'var(--text-secondary)' }}> completed </span>
-                            <span className="font-medium" style={{ color: accent }}>Stage {sc.stage}</span>
-                          </p>
-                          {sc.notes && <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>{sc.notes}</p>}
-                          {sc.document_name && (
-                            <p className="text-xs mt-0.5 flex items-center gap-1" style={{ color: '#2563eb' }}>
-                              📎 {sc.document_name}
-                            </p>
-                          )}
-                          <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{formatDate(sc.completed_at)}</p>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              )
-            }
+        {/* Right: tabbed panel */}
+        <div className="rounded-xl overflow-hidden" style={{ background: 'var(--card)', border: '1px solid var(--border)', alignSelf: 'start' }}>
+          {/* Tab bar */}
+          <div className="flex" style={{ borderBottom: '1px solid var(--border)' }}>
+            {([
+              { key: 'activity', label: 'Activity', icon: FileText },
+              { key: 'thread', label: 'Thread', icon: MessageSquare },
+            ] as const).map(({ key, label, icon: Icon }) => (
+              <button
+                key={key}
+                onClick={() => setSideTab(key)}
+                className="flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-semibold transition-all"
+                style={{
+                  color: sideTab === key ? 'var(--accent)' : 'var(--text-muted)',
+                  borderBottom: sideTab === key ? '2px solid var(--accent)' : '2px solid transparent',
+                  background: 'transparent',
+                  marginBottom: -1,
+                }}
+              >
+                <Icon className="w-3.5 h-3.5" />
+                {label}
+                {key === 'thread' && (po.comments ?? []).length > 0 && (
+                  <span className="text-xs w-4 h-4 rounded-full flex items-center justify-center font-bold"
+                    style={{ background: 'var(--accent)', color: '#1a0a00', fontSize: 9 }}>
+                    {(po.comments ?? []).length}
+                  </span>
+                )}
+              </button>
+            ))}
           </div>
 
-          {/* Comments */}
-          <div className="rounded-xl p-5" style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
-            <CommentThread
-              poId={po.id}
-              comments={po.comments ?? []}
-              onComment={c => setPO(p => p ? { ...p, comments: [...(p.comments ?? []), c] } : p)}
-            />
+          {/* Tab content */}
+          <div className="p-5">
+            {sideTab === 'activity' && (
+              <div>
+                {(po.stage_completions ?? []).length === 0 ? (
+                  <p className="text-sm py-4 text-center" style={{ color: 'var(--text-muted)' }}>No activity yet.</p>
+                ) : (
+                  <div className="space-y-4">
+                    {[...(po.stage_completions ?? [])].reverse().map(sc => {
+                      const accent = ROLE_ACCENT[sc.completed_by_role] ?? '#475569'
+                      return (
+                        <div key={sc.id} className="flex gap-3">
+                          <div className="w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold"
+                            style={{ background: accent }}>
+                            {sc.completed_by_name.charAt(0)}
+                          </div>
+                          <div className="min-w-0 pt-0.5">
+                            <p className="text-xs leading-relaxed">
+                              <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+                                {sc.completed_by_name.split(' ')[0]}
+                              </span>
+                              <span style={{ color: 'var(--text-secondary)' }}> completed </span>
+                              <span className="font-semibold" style={{ color: accent }}>Stage {sc.stage}</span>
+                            </p>
+                            {sc.notes && (
+                              <p className="text-xs mt-1 px-2 py-1 rounded-lg" style={{ color: 'var(--text-secondary)', background: 'var(--surface)', fontSize: 11 }}>
+                                {sc.notes}
+                              </p>
+                            )}
+                            {sc.document_name && (
+                              <p className="text-xs mt-1 flex items-center gap-1" style={{ color: '#2563eb' }}>
+                                📎 {sc.document_name}
+                              </p>
+                            )}
+                            <p className="text-xs mt-1" style={{ color: 'var(--text-muted)', fontSize: 10 }}>{formatDate(sc.completed_at)}</p>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {sideTab === 'thread' && (
+              <CommentThread
+                poId={po.id}
+                comments={po.comments ?? []}
+                onComment={c => setPO(p => p ? { ...p, comments: [...(p.comments ?? []), c] } : p)}
+              />
+            )}
           </div>
         </div>
       </div>
