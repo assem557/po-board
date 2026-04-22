@@ -131,7 +131,7 @@ export async function advanceStage(
     })
     .eq('id', po_id)
 
-  return getPO(po_id) ?? null
+  return (await getPO(po_id)) ?? null
 }
 
 export async function updateVehicleBatch(id: string, vin: string, plate: string): Promise<void> {
